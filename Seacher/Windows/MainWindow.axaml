@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Seacher.MainWindow"
+        Title="Seacher">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="32" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="35" />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<Menu Grid.Row="0" >
+			<MenuItem Header="Settings" Click="Settings_Click"/>
+			<ComboBox Name="SelectTable"/>
+		</Menu>
+
+		<DataGrid
+			Name="ResultsDataGrid"
+			Grid.Row="1"
+			GridLinesVisibility="All"
+			AutoGenerateColumns="True"
+			IsReadOnly="True"
+			BorderThickness="1"
+			BorderBrush="Gray" />
+
+		<WrapPanel Grid.Row="2" Name="Conditions" />
+
+		<Button Grid.Row="3" Width="100" >Find</Button>
+	</Grid>
+</Window>

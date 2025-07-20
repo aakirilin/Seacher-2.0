@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Seacher.SettingsWindow"
+        Title="SettingsWindow">
+	
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="250" />
+			<ColumnDefinition Width="3" />
+			<ColumnDefinition Width="*" />
+			<ColumnDefinition Width="3" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="30" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="30" />
+		</Grid.RowDefinitions>
+
+		<DataGrid
+			Grid.Column="0"
+			Grid.Row="1"
+			Name="DBDataGrid"
+			GridLinesVisibility="All"
+			AutoGenerateColumns="True"
+			IsReadOnly="True"
+			BorderThickness="1"
+			BorderBrush="Gray">
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Click="DeleteDBButton_Click" Header="Delete" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+		</DataGrid>
+		<Button
+			Grid.Column="0"
+			Grid.Row="2" 
+			Click="AddDBButton_Click" >Add BD</Button>
+
+		<GridSplitter
+			Padding="5"
+			Grid.RowSpan="3"
+			Grid.Column="1"
+			Background="Gray"
+			ResizeDirection="Columns"/>
+
+		<TextBlock
+			Grid.Column="2"
+			Grid.Row="0" >
+			<Run>Select DB </Run>
+			<Run Name="SelectDBName"></Run>
+		</TextBlock>
+
+		<DataGrid
+			Grid.Column="2"
+			Grid.Row="1"
+			Name="TablesDataGrid"
+			GridLinesVisibility="All"
+			AutoGenerateColumns="True"
+			IsReadOnly="True"
+			BorderThickness="1"
+			BorderBrush="Gray">
+		</DataGrid>
+
+		<GridSplitter
+			Padding="5"
+			Grid.RowSpan="3"
+			Grid.Column="3"
+			Background="Gray"
+			ResizeDirection="Columns"/>
+		
+		<DataGrid
+			Grid.Column="4"
+			Grid.Row="1"
+			Name="ColumnsDataGrid"
+			GridLinesVisibility="All"
+			AutoGenerateColumns="True"
+			IsReadOnly="True"
+			BorderThickness="1"
+			BorderBrush="Gray">
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Click="SetInQerryButton_Click" Header="Set in qerry" />
+					<MenuItem Click="SetInCondition_Click" Header="Set in condition" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+		</DataGrid>
+
+	</Grid>
+
+</Window>

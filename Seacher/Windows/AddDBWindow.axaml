@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+        x:Class="Seacher.AddDBWindow"
+        Title="AddDBWindow">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="30" />
+			<RowDefinition Height="30" />
+			<RowDefinition Height="30" />
+			<RowDefinition Height="30" />
+			<RowDefinition Height="30" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="30" />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="50" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<Menu Grid.ColumnSpan="2">
+			<MenuItem Header="Test" Click="TestButton_Click" />
+			<MenuItem Header="Fill from DB" Click="FillFromDBButton_Click" />
+		</Menu>
+		
+		<Label Grid.Column="0" Grid.Row="1">DBMS</Label>
+		<Label Grid.Column="0" Grid.Row="2">Name</Label>
+		<Label Grid.Column="0" Grid.Row="3">CS</Label>
+
+		<ComboBox 
+			SelectedIndex="0"
+			Name="SelectDBMS" 
+			Grid.Column="1" 
+			Grid.Row="1">
+			<ComboBoxItem>MySQL</ComboBoxItem>
+			<ComboBoxItem>PostgeSQL</ComboBoxItem>
+			<ComboBoxItem>MSSQL</ComboBoxItem>
+		</ComboBox>
+		<TextBox Name="DBName" Grid.Column="1" Grid.Row="2" />
+		<TextBox Name="DBCS" Grid.Column="1" Grid.Row="3"/>
+
+		<Label Grid.Row="4" Grid.ColumnSpan="2">Columns</Label>
+
+		<DataGrid 
+			Name="DataGrid" 
+			Grid.Row="5" 
+			Grid.ColumnSpan="2"
+			GridLinesVisibility="All"
+			AutoGenerateColumns="True" 
+			IsReadOnly="True"
+			BorderThickness="1" 
+			BorderBrush="Gray" />
+		
+		<Button 
+			Click="OkButton_Click"
+			HorizontalAlignment="Right"
+			Grid.Column="1" 
+			Grid.Row="7">Ok</Button>
+	</Grid>
+</Window>
