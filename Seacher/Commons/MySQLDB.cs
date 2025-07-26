@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using Seacher.Controlls;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using Tmds.DBus.Protocol;
@@ -100,20 +101,23 @@ namespace Seacher.Commons
                 {
                     string value = null;
                     var isNull = reader.IsDBNull(c);
+                    var typeField = reader.GetFieldType(c).Name.ToLower();
                     if (!isNull)
                     {
-                        var typeField = reader.GetFieldType(c).Name.ToLower();
-
                         switch (typeField)
                         {
                             case "string": value = reader.GetString(c); break;
                             case "int64": value = reader.GetInt64(c).ToString(); break;
                             case "int16": value = reader.GetInt16(c).ToString(); break;
-                            case "int32": value = reader.GetInt32(c).ToString(); break;
+                            case "int32": value = reader.GetInt16(c).ToString(); break;
+                            case "uint64": value = reader.GetUInt64(c).ToString(); break;
+                            case "uint16": value = reader.GetUInt16(c).ToString(); break;
+                            case "uint32": value = reader.GetUInt16(c).ToString(); break;
                         }
                     }
-                    Debug.WriteLine($"{properties[c].Name}-{value}");
-                    properties[c].SetValue(instance, value);
+                    var property = properties[c];
+                    Debug.WriteLine($"{property.Name}-({typeField})-{isNull}-{value}-{reader.GetValue(c)}");
+                    property.SetValue(instance, value);
                 }
 
                 result.Add(instance);
