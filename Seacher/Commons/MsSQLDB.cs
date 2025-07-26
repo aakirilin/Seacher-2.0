@@ -39,5 +39,10 @@ namespace Seacher.Commons
         {
             connection.Dispose();
         }
+
+        public IEnumerable<string[]> SelectQerry(string qerry)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

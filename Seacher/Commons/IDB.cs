@@ -9,5 +9,6 @@ namespace Seacher.Commons
         void Close();
 
         IEnumerable<DBTableSettings> GetTables();
+        IEnumerable<string[]> SelectQerry(string qerry);
     }
 }

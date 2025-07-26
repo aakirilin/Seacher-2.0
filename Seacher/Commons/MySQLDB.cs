@@ -1,4 +1,6 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Avalonia.Controls;
+using MySql.Data.MySqlClient;
+using Seacher.Controlls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,6 +82,39 @@ namespace Seacher.Commons
                 .GroupBy(c => c.Table)
                 .Select(columns => new DBTableSettings(columns));
         }
+
+        public IEnumerable<string[]> SelectQerry(string qerry)
+        {
+            Open();
+
+            var command = new MySqlCommand(qerry, connection);
+            var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                var row = new string[reader.FieldCount];
+                for (int c = 0; c < reader.FieldCount; c++)
+                {
+                    if (!reader.IsDBNull(c))
+                    {
+                        var type = reader.GetFieldType(c).Name.ToLower();
+                        switch (type)
+                        {
+                            case "string": row[c] = reader.GetString(c); break;
+                            case "int64": row[c] = reader.GetInt64(c).ToString(); break;
+                            case "int16": row[c] = reader.GetInt16(c).ToString(); break;
+                            case "int32": row[c] = reader.GetInt32(c).ToString(); break;
+                        }
+                    }
+                }
+
+                yield return row;
+            }
+
+            Close();
+        }
+
+
 
         public void Dispose()
         {

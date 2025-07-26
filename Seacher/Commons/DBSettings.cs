@@ -79,6 +79,19 @@ namespace Seacher.Commons
             }
         }
 
+        public IEnumerable<string[]> SelectQerry(string qerry)
+        {
+            try
+            {
+                db.Open();
+                return db.SelectQerry(qerry);
+            }
+            finally
+            {
+                db.Close();
+            }
+        }
+
         public void Dispose()
         {
             db.Dispose();

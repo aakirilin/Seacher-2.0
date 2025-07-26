@@ -10,6 +10,11 @@ namespace Seacher.Commons
     {
         public List<DBSettings> DBSettings { get; set; }
 
+        public DBSettings this[string dbName]
+        {
+            get => DBSettings.First(d => d.Name.Equals(dbName));
+        }
+
         public Settings()
         {
             DBSettings = new List<DBSettings>();

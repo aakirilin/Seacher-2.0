@@ -17,8 +17,11 @@
 		</Grid.ColumnDefinitions>
 
 		<Menu Grid.Row="0" >
-			<MenuItem Header="Settings" Click="Settings_Click"/>
-			<ComboBox Name="SelectTable"/>
+			<MenuItem Header="Settings" 
+					  Click="Settings_Click" />
+			<ComboBox 
+				Name="SelectTable" 
+				SelectionChanged="SelectTable_SelectionChanged"/>
 		</Menu>
 
 		<DataGrid
@@ -32,6 +35,6 @@
 
 		<WrapPanel Grid.Row="2" Name="Conditions" />
 
-		<Button Grid.Row="3" Width="100" >Find</Button>
+		<Button Grid.Row="3" Width="100" Click="FindButton_Click" >Find</Button>
 	</Grid>
 </Window>
