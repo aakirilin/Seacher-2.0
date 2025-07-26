@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using Seacher.Controlls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Tmds.DBus.Protocol;
 
@@ -83,39 +84,45 @@ namespace Seacher.Commons
                 .Select(columns => new DBTableSettings(columns));
         }
 
-        public IEnumerable<string[]> SelectQerry(string qerry)
+        public IEnumerable<object> SelectQerry(Type type, string qerry)
         {
             Open();
 
             var command = new MySqlCommand(qerry, connection);
             var reader = command.ExecuteReader();
+            var result = new List<object>();
+            var properties = type.GetProperties();
 
             while (reader.Read())
             {
-                var row = new string[reader.FieldCount];
+                var instance = Activator.CreateInstance(type);
                 for (int c = 0; c < reader.FieldCount; c++)
                 {
-                    if (!reader.IsDBNull(c))
+                    string value = null;
+                    var isNull = reader.IsDBNull(c);
+                    if (!isNull)
                     {
-                        var type = reader.GetFieldType(c).Name.ToLower();
-                        switch (type)
+                        var typeField = reader.GetFieldType(c).Name.ToLower();
+
+                        switch (typeField)
                         {
-                            case "string": row[c] = reader.GetString(c); break;
-                            case "int64": row[c] = reader.GetInt64(c).ToString(); break;
-                            case "int16": row[c] = reader.GetInt16(c).ToString(); break;
-                            case "int32": row[c] = reader.GetInt32(c).ToString(); break;
+                            case "string": value = reader.GetString(c); break;
+                            case "int64": value = reader.GetInt64(c).ToString(); break;
+                            case "int16": value = reader.GetInt16(c).ToString(); break;
+                            case "int32": value = reader.GetInt32(c).ToString(); break;
                         }
                     }
+                    Debug.WriteLine($"{properties[c].Name}-{value}");
+                    properties[c].SetValue(instance, value);
                 }
 
-                yield return row;
+                result.Add(instance);
             }
 
             Close();
+
+            return result;
         }
-
-
-
         public void Dispose()
         {
             connection.Dispose();

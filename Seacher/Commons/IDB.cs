@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MySqlX.XDevAPI.Common;
+using System;
 using System.Collections.Generic;
 
 namespace Seacher.Commons
@@ -9,6 +10,6 @@ namespace Seacher.Commons
         void Close();
 
         IEnumerable<DBTableSettings> GetTables();
-        IEnumerable<string[]> SelectQerry(string qerry);
+        IEnumerable<object> SelectQerry(Type type, string qerry);
     }
 }

@@ -79,12 +79,12 @@ namespace Seacher.Commons
             }
         }
 
-        public IEnumerable<string[]> SelectQerry(string qerry)
+        public IEnumerable<object> SelectQerry(Type type, string qerry)
         {
             try
             {
                 db.Open();
-                return db.SelectQerry(qerry);
+                return db.SelectQerry(type, qerry);
             }
             finally
             {

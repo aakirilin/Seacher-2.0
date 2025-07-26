@@ -40,7 +40,7 @@ namespace Seacher.Commons
             connection.Dispose();
         }
 
-        public IEnumerable<string[]> SelectQerry(string qerry)
+        public IEnumerable<object> SelectQerry(Type type, string qerry)
         {
             throw new NotImplementedException();
         }

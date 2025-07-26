@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 
 namespace Seacher
 {
@@ -79,69 +80,83 @@ namespace Seacher
                 var qerry = selectedItem.DBTable.CreateQerry(Conditions);
                 var db = settings[selectedItem.DBName];
 
-                var results = db.SelectQerry(qerry).ToArray();
-
                 var type = CreateType(selectedItem.DBTable.Columns);
+                var results = db.SelectQerry(type, qerry).ToArray();
 
-                
+                ResultsDataGrid.ItemsSource = results;
             }
         }
 
         private Type CreateType(IEnumerable<DBColumnSettings> fields)
         {
-            var aName = new AssemblyName("DynamicAssembly");
+            AppDomain myDomain = Thread.GetDomain();
+            AssemblyName myAsmName = new AssemblyName();
+            myAsmName.Name = "MyDynamicAssembly";
 
-            var ab = AssemblyBuilder.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndCollect);
+            // To generate a persistable assembly, specify AssemblyBuilderAccess.RunAndSave.
+            //AssemblyBuilder myAsmBuilder = myDomain.DefineDynamicAssembly(myAsmName, AssemblyBuilderAccess.RunAndCollect);
+            AssemblyBuilder myAsmBuilder = AssemblyBuilder.DefineDynamicAssembly(myAsmName, AssemblyBuilderAccess.RunAndCollect);
+            // Generate a persistable single-module assembly.
+            ModuleBuilder myModBuilder =
+                myAsmBuilder.DefineDynamicModule(myAsmName.Name);
 
-            var mb = ab.DefineDynamicModule(ab.GetName().FullName);
+            TypeBuilder myTypeBuilder = myModBuilder.DefineType("TempData",
+                                                            TypeAttributes.Public);
 
-            var tb = mb.DefineType("DynamicType", TypeAttributes.Public);
 
-            foreach (var field in fields)
+            for (var i = 0; i < fields.Count(); i++)
             {
-                PropertyBuilder property = tb.DefineProperty(
-                    field.Name,
-                    PropertyAttributes.HasDefault,
-                    typeof(string),
-                    null);
+                var field = fields.ElementAt(i);
+                var fieldName = $"f{i}_{field.Name}";
 
+
+                FieldBuilder customerNameBldr = myTypeBuilder.DefineField(fieldName + "_field",
+                                                                typeof(string),
+                                                                FieldAttributes.Private);
+
+                PropertyBuilder custNamePropBldr = myTypeBuilder.DefineProperty(fieldName,
+                                                             PropertyAttributes.HasDefault,
+                                                             typeof(string),
+                                                             null);
+
+                // The property set and property get methods require a special
+                // set of attributes.
                 MethodAttributes getSetAttr =
                     MethodAttributes.Public |
                     MethodAttributes.SpecialName |
                     MethodAttributes.HideBySig;
 
-                MethodBuilder get = tb.DefineMethod(
-                    $"get_{field.Name}",
-                    getSetAttr,
-                    typeof(string),
-                    Type.EmptyTypes);
+                // Define the "get" accessor method for CustomerName.
+                MethodBuilder custNameGetPropMthdBldr =
+                    myTypeBuilder.DefineMethod("get_" + fieldName,
+                                               getSetAttr,
+                                               typeof(string),
+                                               Type.EmptyTypes);
 
-                ILGenerator pGetIL = get.GetILGenerator();
-                pGetIL.Emit(OpCodes.Ldarg_0);
-                pGetIL.Emit(OpCodes.Ldfld);
-                pGetIL.Emit(OpCodes.Ret);
+                ILGenerator custNameGetIL = custNameGetPropMthdBldr.GetILGenerator();
 
-                MethodBuilder set = tb.DefineMethod(
-                    $"set_{field.Name}",
-                    getSetAttr,
-                    null,
-                    new Type[] { typeof(string) });
+                custNameGetIL.Emit(OpCodes.Ldarg_0);
+                custNameGetIL.Emit(OpCodes.Ldfld, customerNameBldr);
+                custNameGetIL.Emit(OpCodes.Ret);
 
-                ILGenerator numberSetIL = set.GetILGenerator();
-                numberSetIL.Emit(OpCodes.Ldarg_0);
-                numberSetIL.Emit(OpCodes.Ldarg_1);
-                numberSetIL.Emit(OpCodes.Stfld);
-                numberSetIL.Emit(OpCodes.Ret);
+                // Define the "set" accessor method for CustomerName.
+                MethodBuilder custNameSetPropMthdBldr =
+                    myTypeBuilder.DefineMethod("set_" + fieldName,
+                                               getSetAttr,
+                                               null,
+                                               new Type[] { typeof(string) });
 
-                property.SetGetMethod(get);
-                property.SetSetMethod(set);
+                ILGenerator custNameSetIL = custNameSetPropMthdBldr.GetILGenerator();
 
-                var attributeCtor = tb.GetConstructor([typeof(DisplayNameAttribute)]);
-                CustomAttributeBuilder caBuilder = new CustomAttributeBuilder(attributeCtor, [field.Name]);
-                property.SetCustomAttribute(caBuilder);
+                custNameSetIL.Emit(OpCodes.Ldarg_0);
+                custNameSetIL.Emit(OpCodes.Ldarg_1);
+                custNameSetIL.Emit(OpCodes.Stfld, customerNameBldr);
+                custNameSetIL.Emit(OpCodes.Ret);
+
+                custNamePropBldr.SetGetMethod(custNameGetPropMthdBldr);
+                custNamePropBldr.SetSetMethod(custNameSetPropMthdBldr);
             }
-
-            Type? t = tb.CreateType();
+            Type? t = myTypeBuilder.CreateType();
             return t;
         }
     }
