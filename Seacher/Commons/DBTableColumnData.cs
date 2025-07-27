@@ -7,7 +7,7 @@ namespace Seacher.Commons
         public string Table;
         public string Column;
         public string DataType;
-        public int Length;
+        public long Length;
         public string ReferencedTableName;
         public string ReferencedColumnName;
     }

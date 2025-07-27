@@ -41,19 +41,18 @@ namespace Seacher.Commons
 
         public IEnumerable<DBTableSettings> GetTables()
         {
-            Open();
             var command = new MySqlCommand(
                 """
                 SELECT 
-                	col_u.TABLE_NAME,
-                    col_u.COLUMN_NAME,
+                	col.TABLE_NAME,
+                    col.COLUMN_NAME,
                     col.DATA_TYPE,
                     col.CHARACTER_MAXIMUM_LENGTH,
                     col_u.REFERENCED_TABLE_NAME,
                     col_u.REFERENCED_COLUMN_NAME
                 FROM 
-                	INFORMATION_SCHEMA.KEY_COLUMN_USAGE as col_u
-                	left join INFORMATION_SCHEMA.COLUMNS as col on col_u.TABLE_NAME = col.TABLE_NAME and col_u.COLUMN_NAME = col.COLUMN_NAME 
+                	INFORMATION_SCHEMA.COLUMNS as col
+                	left join INFORMATION_SCHEMA.KEY_COLUMN_USAGE as col_u on col_u.TABLE_NAME = col.TABLE_NAME and col_u.COLUMN_NAME = col.COLUMN_NAME 
                 """, connection);
             var reader = command.ExecuteReader();
 
@@ -64,7 +63,7 @@ namespace Seacher.Commons
                 var table = reader.IsDBNull(0) ? "" : reader.GetString(0);
                 var column = reader.IsDBNull(1) ? "" : reader.GetString(1);
                 var dataType = reader.IsDBNull(2) ? "" : reader.GetString(2);
-                var length = reader.IsDBNull(3) ? 0 : reader.GetInt32(3);
+                var length = reader.IsDBNull(3) ? 0 : reader.GetInt64(3);
                 var referencedTableName = reader.IsDBNull(4) ? "" : reader.GetString(4);
                 var referencedColumnName = reader.IsDBNull(5) ? "" : reader.GetString(5);
 
@@ -78,8 +77,6 @@ namespace Seacher.Commons
                 });
             }
 
-            Close();
-
             return columns
                 .GroupBy(c => c.Table)
                 .Select(columns => new DBTableSettings(columns));
@@ -87,8 +84,6 @@ namespace Seacher.Commons
 
         public IEnumerable<object> SelectQerry(Type type, string qerry)
         {
-            Open();
-
             var command = new MySqlCommand(qerry, connection);
             var reader = command.ExecuteReader();
             var result = new List<object>();
@@ -113,6 +108,8 @@ namespace Seacher.Commons
                             case "uint64": value = reader.GetUInt64(c).ToString(); break;
                             case "uint16": value = reader.GetUInt16(c).ToString(); break;
                             case "uint32": value = reader.GetUInt16(c).ToString(); break;
+                            case "bool": value = reader.GetBoolean(c).ToString(); break;
+                            case "datetime": value = reader.GetDateTime(c).ToString(); break;
                         }
                     }
                     var property = properties[c];
@@ -122,9 +119,6 @@ namespace Seacher.Commons
 
                 result.Add(instance);
             }
-
-            Close();
-
             return result;
         }
         public void Dispose()

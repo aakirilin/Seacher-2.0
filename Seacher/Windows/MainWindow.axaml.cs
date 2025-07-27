@@ -81,7 +81,9 @@ namespace Seacher
                 var db = settings[selectedItem.DBName];
 
                 var type = CreateType(selectedItem.DBTable.Columns);
-                var results = db.SelectQerry(type, qerry).ToArray();
+                var results = db
+                    .SelectQerry(type, qerry)
+                    .ToArray();
 
                 ResultsDataGrid.ItemsSource = results;
             }
@@ -107,6 +109,10 @@ namespace Seacher
             for (var i = 0; i < fields.Count(); i++)
             {
                 var field = fields.ElementAt(i);
+                if (!field.ShowInData)
+                {
+                    continue;
+                }
                 var fieldName = $"f{i}_{field.Name}";
 
 

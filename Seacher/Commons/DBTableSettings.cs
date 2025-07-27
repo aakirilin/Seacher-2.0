@@ -23,7 +23,8 @@ namespace Seacher.Commons
         public DBTableSettings(IEnumerable<DBTableColumnData> columns)
         {
             Name = columns.First().Table;
-            Columns = columns.Select(c => new DBColumnSettings(c)).ToList();
+            Columns = columns
+                .Select(c => new DBColumnSettings(c)).ToList();
         }
 
         public List<Control> CreateConditions()
@@ -31,8 +32,12 @@ namespace Seacher.Commons
             var controls = new List<Control>();
             foreach (var column in Columns)
             {
+                if (!column.ShowInCondition)
+                {
+                    continue;
+                }
                 Control control = null;
-                var length = column.Length > 0 ? column.Length : 10;
+                var length = column.Length > 0 ? (int)column.Length : 10;
 
                 switch (column.DataType.ToLower().Trim())
                 {
@@ -112,18 +117,32 @@ namespace Seacher.Commons
 
         public string CreateQerry(WrapPanel conditionsPanel)
         {
-            var conditions = new List<string>();
+            var grid = conditionsPanel
+                .Children
+                .OfType<Border>().Select(b => b.Child as Grid);
 
-            var mainTableAliace = "t0";
+            var conditions = grid.SelectMany(g => g.Children)
+                .OfType<TextBoxColumn>()
+                .Select(t => new { Text = t.Text?.Trim().Trim('_') ?? "", t.DBName, t.ColumnName })
+                .Where(t => !String.IsNullOrWhiteSpace(t.Text))
+                .Select(c => $"{c.DBName}.{c.ColumnName} like '%{c.Text}%'");
+
+            var condition = String.Join(" and ", conditions);
+            condition = String.IsNullOrWhiteSpace(condition) ? String.Empty : "where " + condition;
+
+
+            var mainTableAliace = Name;
             var mainTableName = Name;
 
             var columns = Columns
+                .Where(c => c.ShowInData)
                 .Select((c, i) => $"{mainTableAliace}.{c.Name} as {mainTableAliace}_c{i}");
 
             return 
                 $"""
                     select {string.Join(", ", columns)}
                     from {mainTableName} as {mainTableAliace}
+                    {condition}
                 """;
         }
     }
