@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Seacher.Commons
 {
@@ -11,11 +12,12 @@ namespace Seacher.Commons
 
     public class DBSettings: IDisposable
     {
+        [XmlIgnore]
+        public IDB db;
         public string Name { get; set; }
         public string ConnectionStrings { get; set; }
         public string SelectDBMS { get; set; }
 
-        public IDB db;
 
         public List<DBTableSettings> DBTables { get; set; }
 
@@ -31,10 +33,24 @@ namespace Seacher.Commons
             var selectedDBMSItem = addDBWindow.SelectDBMS.SelectedItem as ComboBoxItem;
             SelectDBMS = selectedDBMSItem?.Content?.ToString() ?? "";
 
-            this.db = CreateDB();
+            CreateDB();
         }
 
-        public IDB CreateDB()
+        private void Open()
+        {
+            if (db == null) 
+            {
+                CreateDB();
+            }
+            db.Open();
+        }
+
+        private void Close()
+        {
+            db?.Close();
+        }
+
+        public void CreateDB()
         {
             IDB db = null;
 
@@ -46,14 +62,14 @@ namespace Seacher.Commons
                 default: throw new NotImplementedException($"The value ({SelectDBMS}) is not Implemented");
             }
 
-            return db;
+            this.db = db;
         }
 
         public string TestConnection()
         {
             try
             {
-                db.Open();
+                Open();
                 return "test is successfully";
             }
             catch (Exception ex)
@@ -62,7 +78,7 @@ namespace Seacher.Commons
             }
             finally
             {
-                db.Close();
+                Close();
             }
         }
 
@@ -70,12 +86,12 @@ namespace Seacher.Commons
         {
             try
             {
-                db.Open();
+                Open();
                 DBTables = db.GetTables().ToList();
             }
             finally
             {
-                db.Close();
+                Close();
             }
         }
 
@@ -83,18 +99,18 @@ namespace Seacher.Commons
         {
             try
             {
-                db.Open();
+                Open();
                 return db.SelectQerry(type, qerry);
             }
             finally
             {
-                db.Close();
+                Close();
             }
         }
 
         public void Dispose()
         {
-            db.Dispose();
+            db?.Dispose();
         }
     }
 }

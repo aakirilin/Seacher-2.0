@@ -104,10 +104,10 @@ namespace Seacher.Commons
                             case "string": value = reader.GetString(c); break;
                             case "int64": value = reader.GetInt64(c).ToString(); break;
                             case "int16": value = reader.GetInt16(c).ToString(); break;
-                            case "int32": value = reader.GetInt16(c).ToString(); break;
+                            case "int32": value = reader.GetInt32(c).ToString(); break;
                             case "uint64": value = reader.GetUInt64(c).ToString(); break;
                             case "uint16": value = reader.GetUInt16(c).ToString(); break;
-                            case "uint32": value = reader.GetUInt16(c).ToString(); break;
+                            case "uint32": value = reader.GetUInt32(c).ToString(); break;
                             case "bool": value = reader.GetBoolean(c).ToString(); break;
                             case "datetime": value = reader.GetDateTime(c).ToString(); break;
                         }

@@ -18,10 +18,10 @@ namespace Seacher
     {
         private readonly Settings settings;
 
-        public MainWindow(Settings settings)
+        public MainWindow()
         {
             InitializeComponent();
-            this.settings = settings;
+            this.settings = Settings.Load();
 
             SelectTable.SelectionChanged += (s, e) => {
                 var index = SelectTable.SelectedIndex;
@@ -39,6 +39,7 @@ namespace Seacher
             window.Closed += (s, e) =>
             {
                 UpdateSelectTableComboBox();
+                settings.Save();
             };
         }
 

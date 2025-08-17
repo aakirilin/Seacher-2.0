@@ -23,8 +23,7 @@ namespace Seacher.Commons
         public DBTableSettings(IEnumerable<DBTableColumnData> columns)
         {
             Name = columns.First().Table;
-            Columns = columns
-                .Select(c => new DBColumnSettings(c)).ToList();
+            Columns = columns.Select(c => new DBColumnSettings(c)).ToList();
         }
 
         public List<Control> CreateConditions()
@@ -115,6 +114,11 @@ namespace Seacher.Commons
             return controls;
         }
 
+        public string CreateQerry(DBSettings db, WrapPanel conditionsPanel)
+        {
+            var qerryCreator = new QerryCreator(db, conditionsPanel);
+            return qerryCreator.Create(Name);
+        }
         public string CreateQerry(WrapPanel conditionsPanel)
         {
             var grid = conditionsPanel
