@@ -43,6 +43,56 @@ namespace Seacher.Commons
             return tables.ElementAt(index).Name;
         }
 
+        public List<DBColumnSettings> GetTableColumns(string tablesName)
+        {
+            var table = GetTable(tablesName);
+            return table.Columns;
+        }
+
+
+        public List<QerryCreatorForeignKey> GetForeignKey(string mainTableName)
+        {
+            var mainTable = GetTable(mainTableName);
+
+            var result = mainTable.Columns
+                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
+                .Select(c => new QerryCreatorForeignKey(GetTable(c.ReferencedTableName), c))
+                .ToList();
+
+            return result;
+        }
+
+        public List<QerryCreatorTableColumn> GetAllColumns(string mainTableName)
+        {
+            var mainTable = GetTable(mainTableName);
+
+            var result = new List<QerryCreatorTableColumn>();
+
+            var mainTableColumns = mainTable.Columns                
+                .Select(c => new QerryCreatorTableColumn(mainTableName, c, null));
+
+            var joinedColumns = mainTable.Columns
+                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
+                .ToDictionary(c=> c, c => GetTableColumns(c.ReferencedTableName))
+                .SelectMany(c => c.Value.Select(c1 => new QerryCreatorTableColumn(c.Key.ReferencedTableName, c1, c.Key)));
+
+            result.AddRange(mainTableColumns);
+            result.AddRange(joinedColumns);
+
+            return result;
+        }
+
+        public List<string> GetTableJoinedColumns(string tablesName)
+        {
+            var aliace = GetTableAliace(tablesName);
+            var table = GetTable(tablesName);
+            var columns = table.Columns
+                .Where(c => c.ShowInData)
+                .Select((c, i) => $"{aliace}.{c.Name} as {aliace}_c{i}");
+
+            return columns.ToList();
+        }
+
         public string Create(string mainTableName)
         {
             var grid = conditionsPanel
@@ -53,7 +103,7 @@ namespace Seacher.Commons
                 .OfType<TextBoxColumn>()
                 .Select(t => new { Text = t.Text?.Trim().Trim('_') ?? "", t.DBName, t.ColumnName })
                 .Where(t => !String.IsNullOrWhiteSpace(t.Text))
-                .Select(c => $"{c.DBName}.{c.ColumnName} like '%{c.Text}%'");
+                .Select(c => $"{GetTableAliace(c.DBName)}.{c.ColumnName} like '%{c.Text}%'");
 
             var condition = String.Join(" and ", conditions);
             condition = String.IsNullOrWhiteSpace(condition) ? String.Empty : "where " + condition;
@@ -61,14 +111,26 @@ namespace Seacher.Commons
             var mainTableAliace = GetTableAliace(mainTableName);
             var mainTable = GetTable(mainTableName);
 
-            var columns = mainTable.Columns
-                .Where(c => c.ShowInData)
-                .Select((c, i) => $"{mainTableAliace}.{c.Name} as {mainTableAliace}_c{i}");
+            //var columns = GetTableJoinedColumns(mainTableName);
+
+            var joinedTables = mainTable
+                .Columns
+                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
+                .Select(c => 
+                $"""
+                    left join {c.ReferencedTableName} as {GetTableAliace(c.ReferencedTableName)} 
+                    on {mainTableAliace}.{c.Name} = {GetTableAliace(c.ReferencedTableName)}.{c.ReferencedColumnName}
+                 """);
+
+            var columns = GetAllColumns(mainTableName)
+                .Where(c => c.Column.ShowInData)
+                .Select((c, i) => $"{GetTableAliace(c.TableName)}.{c.Column.Name} as {GetTableAliace(c.TableName)}_c{i}");
 
             return
                 $"""
                     select {string.Join(", ", columns)}
                     from {mainTableName} as {mainTableAliace}
+                    {string.Join(Environment.NewLine, joinedTables)}
                     {condition}
                 """;
         }

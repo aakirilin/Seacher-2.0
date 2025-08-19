@@ -10,7 +10,6 @@
         public bool ShowInData {get; set; }
         public bool ShowInCondition {get; set; }
 
-
         public DBColumnSettings() { }
 
         public DBColumnSettings(DBTableColumnData column)

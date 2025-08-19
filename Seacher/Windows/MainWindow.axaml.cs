@@ -51,7 +51,11 @@ namespace Seacher
                 foreach (var table in db.DBTables)
                 {
                     var title = $"{db.Name}->{table.Name}";
-                    SelectTable.Items.Add(new ComboBoxItemTable() { Content = title, DBTable = table, DBName = db.Name });
+                    SelectTable.Items.Add(new ComboBoxItemTable() { 
+                        Content = title, 
+                        DBTable = table, 
+                        DBName = db.Name
+                    });
                 }
             }
 
@@ -76,12 +80,13 @@ namespace Seacher
         private void FindButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             var selectedItem = SelectTable.SelectedItem as ComboBoxItemTable;
-            if (selectedItem != null)
+            if (selectedItem != null) 
             {
-                var qerry = selectedItem.DBTable.CreateQerry(Conditions);
                 var db = settings[selectedItem.DBName];
-
-                var type = CreateType(selectedItem.DBTable.Columns);
+                var qerryCreator = new QerryCreator(db, Conditions);
+                var qerry = qerryCreator.Create(selectedItem.DBTable.Name);
+                Debug.WriteLine(qerry);
+                var type = CreateType(qerryCreator, selectedItem.DBTable.Name);
                 var results = db
                     .SelectQerry(type, qerry)
                     .ToArray();
@@ -115,6 +120,86 @@ namespace Seacher
                     continue;
                 }
                 var fieldName = $"f{i}_{field.Name}";
+
+
+                FieldBuilder customerNameBldr = myTypeBuilder.DefineField(fieldName + "_field",
+                                                                typeof(string),
+                                                                FieldAttributes.Private);
+
+                PropertyBuilder custNamePropBldr = myTypeBuilder.DefineProperty(fieldName,
+                                                             PropertyAttributes.HasDefault,
+                                                             typeof(string),
+                                                             null);
+
+                // The property set and property get methods require a special
+                // set of attributes.
+                MethodAttributes getSetAttr =
+                    MethodAttributes.Public |
+                    MethodAttributes.SpecialName |
+                    MethodAttributes.HideBySig;
+
+                // Define the "get" accessor method for CustomerName.
+                MethodBuilder custNameGetPropMthdBldr =
+                    myTypeBuilder.DefineMethod("get_" + fieldName,
+                                               getSetAttr,
+                                               typeof(string),
+                                               Type.EmptyTypes);
+
+                ILGenerator custNameGetIL = custNameGetPropMthdBldr.GetILGenerator();
+
+                custNameGetIL.Emit(OpCodes.Ldarg_0);
+                custNameGetIL.Emit(OpCodes.Ldfld, customerNameBldr);
+                custNameGetIL.Emit(OpCodes.Ret);
+
+                // Define the "set" accessor method for CustomerName.
+                MethodBuilder custNameSetPropMthdBldr =
+                    myTypeBuilder.DefineMethod("set_" + fieldName,
+                                               getSetAttr,
+                                               null,
+                                               new Type[] { typeof(string) });
+
+                ILGenerator custNameSetIL = custNameSetPropMthdBldr.GetILGenerator();
+
+                custNameSetIL.Emit(OpCodes.Ldarg_0);
+                custNameSetIL.Emit(OpCodes.Ldarg_1);
+                custNameSetIL.Emit(OpCodes.Stfld, customerNameBldr);
+                custNameSetIL.Emit(OpCodes.Ret);
+
+                custNamePropBldr.SetGetMethod(custNameGetPropMthdBldr);
+                custNamePropBldr.SetSetMethod(custNameSetPropMthdBldr);
+            }
+            Type? t = myTypeBuilder.CreateType();
+            return t;
+        }
+
+        private Type CreateType(QerryCreator qerryCreator, string mainTable)
+        {
+            AppDomain myDomain = Thread.GetDomain();
+            AssemblyName myAsmName = new AssemblyName();
+            myAsmName.Name = "MyDynamicAssembly";
+
+            // To generate a persistable assembly, specify AssemblyBuilderAccess.RunAndSave.
+            //AssemblyBuilder myAsmBuilder = myDomain.DefineDynamicAssembly(myAsmName, AssemblyBuilderAccess.RunAndCollect);
+            AssemblyBuilder myAsmBuilder = AssemblyBuilder.DefineDynamicAssembly(myAsmName, AssemblyBuilderAccess.RunAndCollect);
+            // Generate a persistable single-module assembly.
+            ModuleBuilder myModBuilder =
+                myAsmBuilder.DefineDynamicModule(myAsmName.Name);
+
+            TypeBuilder myTypeBuilder = myModBuilder.DefineType("TempData",
+                                                            TypeAttributes.Public);
+
+            var fields = qerryCreator.GetAllColumns(mainTable);
+
+
+
+            for (var i = 0; i < fields.Count(); i++)
+            {
+                var field = fields.ElementAt(i);
+                if (!field.Column.ShowInData)
+                {
+                    continue;
+                }
+                var fieldName = $"{field.TableName}_{field.Column.Name}_{qerryCreator.GetTableAliace(field.TableName)}";
 
 
                 FieldBuilder customerNameBldr = myTypeBuilder.DefineField(fieldName + "_field",
