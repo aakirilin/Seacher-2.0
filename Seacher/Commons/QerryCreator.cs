@@ -22,12 +22,21 @@ namespace Seacher.Commons
             this.conditionsPanel = conditionsPanel;
         }
 
+        public List<QerryCreatorForeignKey> GetJoinedTables(string mainTableName)
+        {
+            var mainTable = GetTable(mainTableName);
+            return mainTable.Columns
+                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
+                .Select(c => new QerryCreatorForeignKey(tables.First(t => c.ReferencedTableName.Equals(t.Name)), c))
+                .ToList();
+        }
+
         public DBTableSettings GetTable(string name)
         {
             return tables.First(t => t.Name.Equals(name));
         }
 
-        public DBTableSettings GetTables(int index)
+        public DBTableSettings GetTable(int index)
         {
             return tables.ElementAt(index);
         }
@@ -35,6 +44,11 @@ namespace Seacher.Commons
         public string GetTableAliace(string tablesName)
         {
             var index = tables.IndexOfElement(t => t.Name.Equals(tablesName));
+            return GetTableAliace(index, tablesName);
+        }
+
+        public string GetTableAliace(int index, string tablesName)
+        {
             return $"t{index}";
         }
 
@@ -68,6 +82,27 @@ namespace Seacher.Commons
 
             var result = new List<QerryCreatorTableColumn>();
 
+            var columns = GetTableColumns(mainTableName)
+                .Where(c => c.ShowInData)
+                .Select((c, i) => new QerryCreatorTableColumn(0, i, mainTableName, c, null));
+
+            var joinedColumns = GetJoinedTables(mainTableName)
+                .SelectMany((f, i) => f.Table.SownColumns
+                    .Select((c, j) => new QerryCreatorTableColumn(i + 1, j, f.ForeignKey.ReferencedTableName, c, f.ForeignKey)));
+
+            result.AddRange(columns);
+            result.AddRange(joinedColumns);
+
+            return result;
+        }
+
+        /*
+        public List<QerryCreatorTableColumn> GetAllColumns(string mainTableName)
+        {
+            var mainTable = GetTable(mainTableName);
+
+            var result = new List<QerryCreatorTableColumn>();
+
             var mainTableColumns = mainTable.Columns                
                 .Select(c => new QerryCreatorTableColumn(mainTableName, c, null));
 
@@ -81,7 +116,7 @@ namespace Seacher.Commons
 
             return result;
         }
-
+        */
         public List<string> GetTableJoinedColumns(string tablesName)
         {
             var aliace = GetTableAliace(tablesName);
@@ -108,23 +143,19 @@ namespace Seacher.Commons
             var condition = String.Join(" and ", conditions);
             condition = String.IsNullOrWhiteSpace(condition) ? String.Empty : "where " + condition;
 
-            var mainTableAliace = GetTableAliace(mainTableName);
+            var mainTableAliace = GetTableAliace(0, mainTableName);
             var mainTable = GetTable(mainTableName);
 
-            //var columns = GetTableJoinedColumns(mainTableName);
-
-            var joinedTables = mainTable
-                .Columns
-                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
-                .Select(c => 
+            var joinedTables = GetJoinedTables(mainTableName)
+                .Select((f, i) => 
                 $"""
-                    left join {c.ReferencedTableName} as {GetTableAliace(c.ReferencedTableName)} 
-                    on {mainTableAliace}.{c.Name} = {GetTableAliace(c.ReferencedTableName)}.{c.ReferencedColumnName}
-                 """);
+                    left join {f.Table.Name} as {GetTableAliace(i + 1 , f.Table.Name)} 
+                    on {mainTableAliace}.{f.ForeignKey.Name} = {GetTableAliace(i + 1, f.Table.Name)}.{f.ForeignKey.ReferencedColumnName}
+                """);
 
             var columns = GetAllColumns(mainTableName)
                 .Where(c => c.Column.ShowInData)
-                .Select((c, i) => $"{GetTableAliace(c.TableName)}.{c.Column.Name} as {GetTableAliace(c.TableName)}_c{i}");
+                .Select(c => $"{GetTableAliace(c.TableIndex, c.TableName)}.{c.Column.Name} as {GetTableAliace(c.TableName)}_t{c.TableIndex}_c{c.ColumnIndex}");
 
             return
                 $"""

@@ -199,7 +199,7 @@ namespace Seacher
                 {
                     continue;
                 }
-                var fieldName = $"{field.TableName}_{field.Column.Name}_{qerryCreator.GetTableAliace(field.TableName)}";
+                var fieldName = $"{field.TableName}_{field.Column.Name}_t{field.TableIndex}_c{field.ColumnIndex}";
 
 
                 FieldBuilder customerNameBldr = myTypeBuilder.DefineField(fieldName + "_field",
