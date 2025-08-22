@@ -41,9 +41,15 @@ namespace Seacher.Commons
 
         public IEnumerable<DBTableSettings> GetTables()
         {
+            var schema = connectionsString
+                .Split(';')
+                .First(t => t.StartsWith("database"))
+                .Split('=')
+                .Last();
+
             var command = new MySqlCommand(
-                """
-                SELECT 
+                $"""
+                SELECT distinct
                 	col.TABLE_NAME,
                     col.COLUMN_NAME,
                     col.DATA_TYPE,
@@ -53,6 +59,8 @@ namespace Seacher.Commons
                 FROM 
                 	INFORMATION_SCHEMA.COLUMNS as col
                 	left join INFORMATION_SCHEMA.KEY_COLUMN_USAGE as col_u on col_u.TABLE_NAME = col.TABLE_NAME and col_u.COLUMN_NAME = col.COLUMN_NAME 
+                where col.TABLE_SCHEMA = '{schema}'
+                order by col.TABLE_NAME, col.COLUMN_NAME
                 """, connection);
             var reader = command.ExecuteReader();
 

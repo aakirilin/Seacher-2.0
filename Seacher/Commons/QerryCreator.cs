@@ -22,13 +22,36 @@ namespace Seacher.Commons
             this.conditionsPanel = conditionsPanel;
         }
 
+
+        public List<QerryCreatorForeignKey> GetJoinedTables(int index, QerryCreatorForeignKey foreignKey)
+        {
+            var mainTable = foreignKey.Table;
+            var result = mainTable.Columns
+                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
+                .Select(c => new QerryCreatorForeignKey(index, mainTable.Name, tables.First(t => c.ReferencedTableName.Equals(t.Name)), c))
+                .ToList();
+
+            return result;
+        }
+
         public List<QerryCreatorForeignKey> GetJoinedTables(string mainTableName)
         {
             var mainTable = GetTable(mainTableName);
-            return mainTable.Columns
+            var result =  mainTable.Columns
                 .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
-                .Select(c => new QerryCreatorForeignKey(tables.First(t => c.ReferencedTableName.Equals(t.Name)), c))
+                .Select(c => new QerryCreatorForeignKey(0, mainTableName, tables.First(t => c.ReferencedTableName.Equals(t.Name)), c))
                 .ToList();
+
+            List<QerryCreatorForeignKey> joinedTables = result;
+            int iteration = 2;
+
+            for (int i = 1; i < iteration; i++)
+            {
+                joinedTables = joinedTables.SelectMany((fk, j) => GetJoinedTables(j + 1, fk)).ToList();
+                result.AddRange(joinedTables);
+            }
+
+            return result;
         }
 
         public DBTableSettings GetTable(string name)
@@ -70,7 +93,7 @@ namespace Seacher.Commons
 
             var result = mainTable.Columns
                 .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
-                .Select(c => new QerryCreatorForeignKey(GetTable(c.ReferencedTableName), c))
+                .Select(c => new QerryCreatorForeignKey(0, mainTableName, GetTable(c.ReferencedTableName), c))
                 .ToList();
 
             return result;
@@ -96,27 +119,6 @@ namespace Seacher.Commons
             return result;
         }
 
-        /*
-        public List<QerryCreatorTableColumn> GetAllColumns(string mainTableName)
-        {
-            var mainTable = GetTable(mainTableName);
-
-            var result = new List<QerryCreatorTableColumn>();
-
-            var mainTableColumns = mainTable.Columns                
-                .Select(c => new QerryCreatorTableColumn(mainTableName, c, null));
-
-            var joinedColumns = mainTable.Columns
-                .Where(c => !String.IsNullOrWhiteSpace(c.ReferencedTableName))
-                .ToDictionary(c=> c, c => GetTableColumns(c.ReferencedTableName))
-                .SelectMany(c => c.Value.Select(c1 => new QerryCreatorTableColumn(c.Key.ReferencedTableName, c1, c.Key)));
-
-            result.AddRange(mainTableColumns);
-            result.AddRange(joinedColumns);
-
-            return result;
-        }
-        */
         public List<string> GetTableJoinedColumns(string tablesName)
         {
             var aliace = GetTableAliace(tablesName);
@@ -149,8 +151,7 @@ namespace Seacher.Commons
             var joinedTables = GetJoinedTables(mainTableName)
                 .Select((f, i) => 
                 $"""
-                    left join {f.Table.Name} as {GetTableAliace(i + 1 , f.Table.Name)} 
-                    on {mainTableAliace}.{f.ForeignKey.Name} = {GetTableAliace(i + 1, f.Table.Name)}.{f.ForeignKey.ReferencedColumnName}
+                left join {f.Table.Name} as {GetTableAliace(i + 1 , f.Table.Name)} on {GetTableAliace(f.Index, f.MainTableName)}.{f.ForeignKey.Name} = {GetTableAliace(i + 1, f.Table.Name)}.{f.ForeignKey.ReferencedColumnName}
                 """);
 
             var columns = GetAllColumns(mainTableName)
