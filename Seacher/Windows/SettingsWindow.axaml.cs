@@ -20,7 +20,6 @@ public partial class SettingsWindow : Window
         {
             if (DBDataGrid.SelectedIndex > -1)
             {
-                SelectDBName.Text = settings.DBSettings[DBDataGrid.SelectedIndex].Name;
                 TablesDataGrid.ItemsSource = settings.DBSettings[DBDataGrid.SelectedIndex]
                     .DBTables.Select(t => new { TableName = t.Name });                
             }

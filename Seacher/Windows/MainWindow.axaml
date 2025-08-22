@@ -9,6 +9,7 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="32" />
 			<RowDefinition Height="*" />
+			<RowDefinition Height="1" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="35" />
 		</Grid.RowDefinitions>
@@ -33,8 +34,18 @@
 			BorderThickness="1"
 			BorderBrush="Gray" />
 
-		<WrapPanel Grid.Row="2" Name="Conditions" />
+		<GridSplitter
+			ResizeDirection="Rows"
+			Grid.Row="2"
+			Background="#9acfe0"/>
 
-		<Button Grid.Row="3" Width="100" Click="FindButton_Click" >Find</Button>
+
+		<WrapPanel Grid.Row="3" Name="Conditions" />
+
+		<Button 
+			Background="#9acfe0"
+			HorizontalAlignment="Center" 
+			HorizontalContentAlignment="Center" 
+			Grid.Row="4" Width="100" Click="FindButton_Click" >Find</Button>
 	</Grid>
 </Window>

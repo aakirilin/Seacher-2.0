@@ -15,7 +15,7 @@
 			<ColumnDefinition Width="*" />
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="30" />
+			<RowDefinition Height="0" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="30" />
 		</Grid.RowDefinitions>
@@ -44,15 +44,8 @@
 			Padding="5"
 			Grid.RowSpan="3"
 			Grid.Column="1"
-			Background="Gray"
+			Background="#9acfe0"
 			ResizeDirection="Columns"/>
-
-		<TextBlock
-			Grid.Column="2"
-			Grid.Row="0" >
-			<Run>Select DB </Run>
-			<Run Name="SelectDBName"></Run>
-		</TextBlock>
 
 		<DataGrid
 			Grid.Column="2"
@@ -69,7 +62,7 @@
 			Padding="5"
 			Grid.RowSpan="3"
 			Grid.Column="3"
-			Background="Gray"
+			Background="#9acfe0"
 			ResizeDirection="Columns"/>
 		
 		<DataGrid
