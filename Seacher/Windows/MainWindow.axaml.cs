@@ -69,7 +69,12 @@ namespace Seacher
             var selectedItem = SelectTable.SelectedItem as ComboBoxItemTable;
             if (selectedItem != null)
             {
-                Conditions.Children.AddRange(selectedItem.DBTable.CreateConditions());
+                var mainDb = settings[selectedItem.DBName];
+                var qerryCreator = new QerryCreator(mainDb, null);
+                Conditions.Children.AddRange(selectedItem.DBTable.CreateConditions(0, qerryCreator.GetTableAliace(0, mainDb.Name)));
+                var joinedTables = qerryCreator.GetJoinedTables(selectedItem.DBTable.Name);
+                Conditions.Children.AddRange(joinedTables
+                    .SelectMany((d, i) => d.Table.CreateConditions(i + 1, qerryCreator.GetTableAliace(i + 1, d.Table.Name))));
             }
         }
 

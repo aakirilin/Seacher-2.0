@@ -33,17 +33,19 @@ namespace Seacher.Commons
             Columns = columns.Select(c => new DBColumnSettings(c)).ToList();
         }
 
-        public List<Control> CreateConditions()
+        public List<Control> CreateConditions(int tableIndex, string dbAliace)
         {
             var controls = new List<Control>();
+            
             foreach (var column in Columns)
-            {
+            {              
                 if (!column.ShowInCondition)
                 {
                     continue;
                 }
                 Control control = null;
                 var length = column.Length > 0 ? (int)column.Length : 10;
+                var name = $"{Name}_{column.Name}_{dbAliace}";
 
                 switch (column.DataType.ToLower().Trim())
                 {
@@ -51,32 +53,36 @@ namespace Seacher.Commons
                         control = new TextBoxColumn()
                         {
                             MaxLength = length,
-                            Name = column.Name.ToLower(),
+                            Name = name,
                             ColumnName = column.Name,
                             DBName = Name,
+                            DBAliace = dbAliace,
                             Mask = new string('9', length)
                         }; break;
                     case "int":
                         control = new TextBoxColumn() { 
                             MaxLength = length, 
-                            Name = column.Name.ToLower(),
+                            Name = name,
                             ColumnName = column.Name,
                             DBName = Name,
+                            DBAliace = dbAliace,
                             Mask = new string('9', length)
                     }; break;
                     case "bigint":
                         control = new TextBoxColumn()
                         {
                             MaxLength = length,
-                            Name = column.Name.ToLower(),
+                            Name = name,
                             ColumnName = column.Name,
                             DBName = Name,
+                            DBAliace = dbAliace,
                             Mask = new string('9', length)
                         }; break;
                     case "char":
                         control = new TextBoxColumn(){
                             MaxLength = length,
-                            Name = column.Name.ToLower(),
+                            Name = name,
+                            DBAliace = dbAliace,
                             ColumnName = column.Name,
                             DBName = Name
                         }; break;
@@ -84,7 +90,8 @@ namespace Seacher.Commons
                         control = new TextBoxColumn()
                         {
                             MaxLength = length,
-                            Name = column.Name.ToLower(),
+                            Name = name,
+                            DBAliace = dbAliace,
                             ColumnName = column.Name,
                             DBName = Name
                         }; break;

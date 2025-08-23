@@ -138,9 +138,9 @@ namespace Seacher.Commons
 
             var conditions = grid.SelectMany(g => g.Children)
                 .OfType<TextBoxColumn>()
-                .Select(t => new { Text = t.Text?.Trim().Trim('_') ?? "", t.DBName, t.ColumnName })
+                .Select(t => new { Text = t.Text?.Trim().Trim('_') ?? "", t.DBName, t.ColumnName, t.DBAliace })
                 .Where(t => !String.IsNullOrWhiteSpace(t.Text))
-                .Select(c => $"{GetTableAliace(c.DBName)}.{c.ColumnName} like '%{c.Text}%'");
+                .Select(c => $"{c.DBAliace}.{c.ColumnName} like '%{c.Text}%'");
 
             var condition = String.Join(" and ", conditions);
             condition = String.IsNullOrWhiteSpace(condition) ? String.Empty : "where " + condition;

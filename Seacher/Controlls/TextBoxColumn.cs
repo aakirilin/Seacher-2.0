@@ -11,5 +11,6 @@ namespace Seacher.Controlls
     {
         public string ColumnName { get; set; }
         public string DBName { get; set; }
+        public string DBAliace { get; set; }
     }
 }
