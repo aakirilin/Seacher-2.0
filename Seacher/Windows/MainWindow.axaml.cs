@@ -6,6 +6,7 @@ using Seacher.Controlls;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -176,9 +177,10 @@ namespace Seacher
                 custNamePropBldr.SetGetMethod(custNameGetPropMthdBldr);
                 custNamePropBldr.SetSetMethod(custNameSetPropMthdBldr);
 
-                ConstructorInfo attributeConstructor = typeof(DisplayNameAttribute).GetConstructor(new Type[] { typeof(string) });
-                CustomAttributeBuilder attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new object[] { field.TableName + "_" + field.Column.Name });
-                myTypeBuilder.SetCustomAttribute(attributeBuilder);
+                ConstructorInfo attributeConstructor = typeof(DisplayAttribute).GetConstructor(new Type[] {});
+                PropertyInfo nameProperty = typeof(DisplayAttribute).GetProperty("Name");
+                CustomAttributeBuilder displayAttributeBuilder = new CustomAttributeBuilder(attributeConstructor, new object[] { }, new PropertyInfo[] { nameProperty }, new object[] { $"{field.TableName}_{field.Column.Name}_t{field.TableIndex}"});
+                custNamePropBldr.SetCustomAttribute(displayAttributeBuilder);
             }
             Type? t = myTypeBuilder.CreateType();
             return t;
