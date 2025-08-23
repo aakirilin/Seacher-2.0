@@ -42,6 +42,7 @@ namespace Seacher.Commons
         public IEnumerable<DBTableSettings> GetTables()
         {
             var schema = connectionsString
+                .ToLower()
                 .Split(';')
                 .First(t => t.StartsWith("database"))
                 .Split('=')
